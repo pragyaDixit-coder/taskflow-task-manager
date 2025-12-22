@@ -1,0 +1,49 @@
+{
+  "name": "task-manager-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
+    "@mui/icons-material": "^6.0.0",
+    "@mui/material": "^6.5.0",
+    "@mui/x-data-grid": "^8.22.0",
+    "@mui/x-date-pickers": "^8.17.0",
+    "@mui/x-date-pickers-pro": "^8.17.0",
+    "@reduxjs/toolkit": "^1.9.5",
+    "@tanstack/react-query": "^5.90.5",
+    "@types/react-calendar": "^3.9.0",
+    "axios": "^1.4.0",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^10.12.16",
+    "lucide-react": "^0.548.0",
+    "react": "^18.2.0",
+    "react-calendar": "^6.0.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.0.0",
+    "react-query": "^4.0.0",
+    "react-router-dom": "^7.0.0",
+    "react-toastify": "^11.0.5",
+    "tailwind-scrollbar": "^4.0.2",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.16",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "postcss-nesting": "^13.0.2",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.5.0",
+    "vite": "^7.1.12"
+  }
+}

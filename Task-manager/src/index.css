@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* Prevent body scroll */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden ;
+  box-sizing: border-box;
+}
+.app-background {
+  min-height: 100vh;
+  width: 100%;
+  background-image: url("./assets/Task-Manager\ background\ 2.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover; /* full screen */
+  background-color: #e8f0f2; /* fallback */
+}
+@media (max-width: 768px) {
+  .app-background {
+    background-image: none;
+    background-color: #ffffff;
+  }
+}
+
+/* === Calendar Custom Styling === */
+.react-calendar {
+  width: 100%;
+  border: none !important;
+  background: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 550;
+  font-size: 16px;
+  border-radius: 12px;
+}
+
+.react-calendar__navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  
+}
+
+.react-calendar__navigation button {
+  color: #374151;
+  min-width: 14px;
+  background: none;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.react-calendar__month-view__weekdays {
+  text-align: center;
+  font-weight: 550;
+  color: #6b7280;
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-bottom: 5px;
+  
+}
+
+.react-calendar__month-view__days__day {
+  text-align: center;
+ 
+  padding: 10px 0;
+  border-radius: 12px;
+  transition: 0.2s;
+  color: #374151;
+  
+}
+
+.react-calendar__month-view__days__day:hover {
+  background-color: #f3f4f6;
+  border-radius: 50%;
+}
+
+/* Today’s date */
+.react-calendar__tile--now {
+  background: #478aee !important;
+  color: white !important;
+  border-radius: 50%;
+}
+
+/* Active selected date */
+.react-calendar__tile--active {
+  background: #faf597 !important;
+  color: #dc871f !important;
+  border-radius: 50%;
+}
+
+
+/* === End of Calendar Custom Styling === */
+
+
+/* Task specific small tweaks */
+.task-card .MuiChip-root { background: #f1f7fb; }
+button { cursor: pointer; }
+table tr:hover { background: rgba(10,84,195,0.02); }
+
+
+/* src/index.css or global.css */
+.MuiDialog-paper {
+  border-radius: 12px !important;
+}
+
+.MuiDataGrid-root {
+  border-radius: 12px !important;
+  
+}
+
+.MuiButton-root {
+  text-transform: none !important;
+  border-radius: 6px !important;
+}
+
+.MuiDialogTitle-root {
+  padding-bottom: 8px !important;
+}
+
+.MuiDialogContent-root {
+  background-color: #f9fafb;
+}
