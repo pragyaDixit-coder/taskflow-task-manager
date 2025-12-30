@@ -31,7 +31,7 @@ const InvalidPage: React.FC = () => {
           variant="h5"
           className="font-semibold text-gray-800 text-center"
         >
-          Task Manager
+          TaskFlow
         </Typography>
 
         {/* Warning Icon */}

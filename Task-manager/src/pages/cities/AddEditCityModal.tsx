@@ -281,6 +281,7 @@ const AddEditCityModal: React.FC<Props> = ({
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
       <DialogTitle
+          component="div"
         sx={{
           display: "flex",
           justifyContent: "space-between",
@@ -289,6 +290,7 @@ const AddEditCityModal: React.FC<Props> = ({
       >
         <Typography
           variant="h6"
+          component="div"
           sx={{
             fontWeight: 700,
             fontSize: "1.6rem",

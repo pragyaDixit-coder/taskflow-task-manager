@@ -74,7 +74,11 @@ const isDateInPast = (isoDateString?: string | ""): boolean => {
     const given = new Date(isoDateString);
     const now = new Date();
     // normalize both to local date midnight
-    const givenMid = new Date(given.getFullYear(), given.getMonth(), given.getDate());
+    const givenMid = new Date(
+      given.getFullYear(),
+      given.getMonth(),
+      given.getDate()
+    );
     const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     return givenMid < todayMid;
   } catch {
@@ -111,7 +115,9 @@ const TaskFormPage: React.FC = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // track last past-date shown for this value (to avoid repeated toasts previously)
-  const [lastPastToastDate, setLastPastToastDate] = useState<string | null>(null);
+  const [lastPastToastDate, setLastPastToastDate] = useState<string | null>(
+    null
+  );
 
   // track if user has edited dueDate in this dialog session
   const [dueDateEdited, setDueDateEdited] = useState(false);
@@ -254,7 +260,10 @@ const TaskFormPage: React.FC = () => {
     // For Add mode or when user actively edits dueDate in Edit mode:
     if (isDateInPast(dueDate)) {
       // set inline error
-      setErrors((prev) => ({ ...prev, dueDate: "Due date cannot be in the past" }));
+      setErrors((prev) => ({
+        ...prev,
+        dueDate: "Due date cannot be in the past",
+      }));
       setLastPastToastDate(dueDate);
     } else {
       // clear dueDate error
@@ -273,15 +282,24 @@ const TaskFormPage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!name.trim()) newErrors.name = "Task name is required";
-    else if (name.trim().length > 50) newErrors.name = "Task name cannot exceed 50 characters";
+    else if (name.trim().length > 50)
+      newErrors.name = "Task name cannot exceed 50 characters";
 
-    if (!assignedTo || assignedTo.length === 0) newErrors.assignedTo = "Assign at least one user";
+    if (!assignedTo || assignedTo.length === 0)
+      newErrors.assignedTo = "Assign at least one user";
+
+    // Due date is required
+    if (!dueDate) {
+      newErrors.dueDate = "Due date is required";
+    }
 
     // Due date cannot be in the past — enforce only when creating (Add). Do NOT block save on edit unless user changed it to invalid.
-    if (!isEdit && dueDate && isDateInPast(dueDate)) newErrors.dueDate = "Due date cannot be in the past";
+    if (!isEdit && dueDate && isDateInPast(dueDate))
+      newErrors.dueDate = "Due date cannot be in the past";
 
     // If editing and user explicitly edited the due date in this session, validate it as well
-    if (isEdit && dueDateEdited && dueDate && isDateInPast(dueDate)) newErrors.dueDate = "Due date cannot be in the past";
+    if (isEdit && dueDateEdited && dueDate && isDateInPast(dueDate))
+      newErrors.dueDate = "Due date cannot be in the past";
 
     setErrors(newErrors);
 
@@ -400,7 +418,9 @@ const TaskFormPage: React.FC = () => {
         options={users}
         getOptionLabel={(opt) => opt.name + (opt.isDeleted ? " (deleted)" : "")}
         value={assignedOptions as any}
-        isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+        isOptionEqualToValue={(option, value) =>
+          String(option.id) === String(value.id)
+        }
         getOptionDisabled={(opt) => Boolean(opt.isDeleted)}
         onChange={(_event, val) => {
           const ids = (val as any[]).map((v) => String(v.id));
@@ -497,7 +517,7 @@ const TaskFormPage: React.FC = () => {
             />
             {/* inline error for assignedTo */}
             {errors.assignedTo && (
-              <Typography variant="caption" color="error" sx={{ mt: 0.5 }}>
+              <Typography variant="caption" color="error" sx={{ mt: 0.5 ,ml:1.5}}>
                 {errors.assignedTo}
               </Typography>
             )}
@@ -524,8 +544,13 @@ const TaskFormPage: React.FC = () => {
         navigate("/tasks");
       }}
     >
-      <DialogTitle
-        sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+      <DialogTitle 
+      component="div"
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
       >
         <Typography variant="h6" fontWeight={700} fontSize={24}>
           <span className="text-gradient bg-clip-text text-transparent bg-linear-to-r from-[#007bff] to-[#0a54c3]">
@@ -547,7 +572,6 @@ const TaskFormPage: React.FC = () => {
         <Grid container spacing={3}>
           {/* LEFT */}
           <Grid item xs={12} md={8}>
-
             <Typography variant="body2" mb={1}>
               Task Name <span className="text-red-500">*</span>
             </Typography>
@@ -586,7 +610,10 @@ const TaskFormPage: React.FC = () => {
                 <IconButton size="small" onClick={() => exec("underline")}>
                   <FormatUnderlinedIcon />
                 </IconButton>
-                <IconButton size="small" onClick={() => exec("insertUnorderedList")}>
+                <IconButton
+                  size="small"
+                  onClick={() => exec("insertUnorderedList")}
+                >
                   <FormatListBulletedIcon />
                 </IconButton>
                 <IconButton
@@ -615,7 +642,7 @@ const TaskFormPage: React.FC = () => {
                     if (editorRef.current && navigator.clipboard) {
                       navigator.clipboard
                         .writeText(editorRef.current.innerHTML)
-                        .catch(() => { });
+                        .catch(() => {});
                     }
                   }}
                 >
@@ -645,7 +672,7 @@ const TaskFormPage: React.FC = () => {
             <Grid container spacing={2} mt={0.5}>
               <Grid item xs={6}>
                 <Typography variant="body2" mb={0.5}>
-                  Due Date
+                  Due Date <span className="text-red-500">*</span>
                 </Typography>
                 <TextField
                   inputRef={dueDateRef}
@@ -668,13 +695,7 @@ const TaskFormPage: React.FC = () => {
                   inputProps={{
                     min: todayISODate(), // prevent picking past dates
                   }}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <CalendarTodayIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  }}
+                 
                   error={Boolean(errors.dueDate)}
                   helperText={errors.dueDate ?? ""}
                 />
@@ -699,9 +720,7 @@ const TaskFormPage: React.FC = () => {
                       background: priority === 0 ? "#28a745" : "transparent",
                       "&:hover": {
                         background:
-                          priority === 0
-                            ? "#218838"
-                            : "rgba(0,0,0,0.04)",
+                          priority === 0 ? "#218838" : "rgba(0,0,0,0.04)",
                       },
                     }}
                   >
@@ -721,9 +740,7 @@ const TaskFormPage: React.FC = () => {
                       background: priority === 1 ? "#ff9800" : "transparent",
                       "&:hover": {
                         background:
-                          priority === 1
-                            ? "#fb8c00"
-                            : "rgba(0,0,0,0.04)",
+                          priority === 1 ? "#fb8c00" : "rgba(0,0,0,0.04)",
                       },
                     }}
                   >
@@ -743,9 +760,7 @@ const TaskFormPage: React.FC = () => {
                       background: priority === 2 ? "#e53935" : "transparent",
                       "&:hover": {
                         background:
-                          priority === 2
-                            ? "#d32f2f"
-                            : "rgba(0,0,0,0.04)",
+                          priority === 2 ? "#d32f2f" : "rgba(0,0,0,0.04)",
                       },
                     }}
                   >
@@ -865,9 +880,7 @@ const TaskFormPage: React.FC = () => {
                 <Button
                   variant="outlined"
                   fullWidth
-                  onClick={() =>
-                    toast.info("Reminder set (placeholder)")
-                  }
+                  onClick={() => toast.info("Reminder set (placeholder)")}
                 >
                   Set Reminder
                 </Button>
@@ -880,7 +893,9 @@ const TaskFormPage: React.FC = () => {
                     onClick={() => {
                       // only allow deletion if task is completed
                       if (!completed) {
-                        toast.error("This task is not completed — you can't delete it.");
+                        toast.error(
+                          "This task is not completed — you can't delete it."
+                        );
                         return;
                       }
                       setConfirmOpen(true);
@@ -896,9 +911,13 @@ const TaskFormPage: React.FC = () => {
       </DialogContent>
 
       <DialogActions sx={{ background: "#fff", px: 3 }}>
-        <Box sx={{
-          borderRadius: 1, border: "1px solid #007bff", px: 3,
-        }}>
+        <Box
+          sx={{
+            borderRadius: 1,
+            border: "1px solid #007bff",
+            px: 3,
+          }}
+        >
           <Button
             onClick={() => {
               setOpen(false);
@@ -933,9 +952,7 @@ const TaskFormPage: React.FC = () => {
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Delete Task</DialogTitle>
         <DialogContent>
-          <Typography>
-            Are you sure you want to delete this task?
-          </Typography>
+          <Typography>Are you sure you want to delete this task?</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>

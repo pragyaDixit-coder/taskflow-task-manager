@@ -149,7 +149,7 @@ const Signup: React.FC = () => {
       "state",
       "city",
       "address",
-      "zip",
+      "ZipCode",
     ];
     for (const k of keysOrder) {
       if (newErrors[k]) {
@@ -254,11 +254,6 @@ const Signup: React.FC = () => {
     const CityName = selectedCity?.name || "";
 
     // prepare zipCodes array: if user entered comma-separated list, split it
-    const zipCodes = (zip || "")
-      .split(",")
-      .map((z) => String(z).trim())
-      .filter(Boolean);
-
     setSubmitting(true);
     try {
       // Build a payload as a flexible record so TypeScript won't complain about unknown keys
@@ -269,16 +264,18 @@ const Signup: React.FC = () => {
         Password: password,
         ConfirmPassword: confirmPassword,
         Address: address,
-        CountryName,
-        StateName,
-        CityName,
-        Zip: zip,
-        zipCodes, // <-- included here as array
-        CountryID: country || undefined,
-        StateID: state || undefined,
-        CityID: city || undefined,
+        // 🔥 NAMES (backend validation ke liye REQUIRED)
+  CountryName: CountryName || null,
+  StateName: StateName || null,
+  CityName: CityName || null,
+        ZipCode: zip || null, // <-- included here as array
+        CountryID: country || null,
+        StateID: state || null,
+        CityID: city || null,
       };
-
+    
+      // 🔍 DEBUG: check what is actually going to backend
+  console.log("SIGNUP PAYLOAD 👉", payload);
       // send the payload (registerUserApi likely expects a specific type, so using Record<string, any> avoids TS error)
       await registerUserApi(payload);
 
@@ -572,6 +569,7 @@ const Signup: React.FC = () => {
               py: 1.2,
               fontWeight: 600,
             }}
+            
           >
             {submitting ? "Creating..." : "Create Account"}
           </Button>

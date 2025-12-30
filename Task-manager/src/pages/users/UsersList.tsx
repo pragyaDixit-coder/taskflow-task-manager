@@ -411,7 +411,7 @@ const UsersList: React.FC = () => {
         const role = currentUser?.role
           ? String(currentUser.role).toLowerCase()
           : null;
-        const currentUserId = currentUser?.id ?? null;
+        const currentUserId = currentUser?._id ?? currentUser?.id ?? null;
 
         const visibleUsers = DEV_SHOW_ALL_USERS
           ? visibleAfterDeleteFilter
@@ -419,6 +419,8 @@ const UsersList: React.FC = () => {
           ? visibleAfterDeleteFilter
           : visibleAfterDeleteFilter.filter((u) => {
               if (!currentUserId) return false;
+              // 👇 allow self
+              if (String(u.mongoId) === String(currentUserId)) return true;
               return String(u.createdById) === String(currentUserId);
             });
 
@@ -438,29 +440,6 @@ const UsersList: React.FC = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recentDeletedIds]);
-
-  const availableStates = useMemo(() => {
-    if (!filters.country) return [];
-    return states.filter(
-      (s) =>
-        String(
-          (s as any).countryId ??
-            (s as any).countryID ??
-            (s as any).countryId ??
-            ""
-        ) === String(filters.country)
-    );
-  }, [filters.country, states]);
-
-  const availableCities = useMemo(() => {
-    if (!filters.state) return [];
-    return cities.filter(
-      (c) =>
-        String(
-          (c as any).stateId ?? (c as any).stateID ?? (c as any).stateId ?? ""
-        ) === String(filters.state)
-    );
-  }, [filters.state, cities]);
 
   useEffect(() => {
     let out = [...users];
@@ -498,6 +477,7 @@ const UsersList: React.FC = () => {
 
   const reloadUsersAndSetState = async () => {
     const userListFromApi = await getUsersApi();
+    console.log("👀 RAW user list from API 👉", userListFromApi);
     const apiList: any[] = extractUserArray(userListFromApi);
     // eslint-disable-next-line no-console
     console.debug("[UsersList] reloadUsers apiList length:", apiList.length);
@@ -532,7 +512,7 @@ const UsersList: React.FC = () => {
     const role = currentUser?.role
       ? String(currentUser.role).toLowerCase()
       : null;
-    const currentUserId = currentUser?.id ?? null;
+    const currentUserId = currentUser?._id ?? currentUser?.id ?? null;
 
     const visibleUsers = DEV_SHOW_ALL_USERS
       ? visibleAfterDeleteFilter
@@ -540,6 +520,8 @@ const UsersList: React.FC = () => {
       ? visibleAfterDeleteFilter
       : visibleAfterDeleteFilter.filter((u) => {
           if (!currentUserId) return false;
+          // 👇 allow self
+          if (String(u.mongoId) === String(currentUserId)) return true;
           return String(u.createdById) === String(currentUserId);
         });
 
@@ -773,8 +755,6 @@ const UsersList: React.FC = () => {
                 setFilters({
                   ...filters,
                   country: e.target.value === "" ? "" : String(e.target.value),
-                  state: "",
-                  city: "",
                 })
               }
               MenuProps={{
@@ -812,10 +792,8 @@ const UsersList: React.FC = () => {
                 setFilters({
                   ...filters,
                   state: e.target.value === "" ? "" : String(e.target.value),
-                  city: "",
-                })
+              })
               }
-              disabled={!filters.country}
               MenuProps={{
                 PaperProps: {
                   sx: { maxHeight: 48 * 4, overflowY: "auto" },
@@ -824,7 +802,7 @@ const UsersList: React.FC = () => {
             >
               <MenuItem value="">All States</MenuItem>
 
-              {availableStates.map((s) => (
+              {states.map((s) => (
                 <MenuItem
                   key={String(
                     (s as any).id ?? (s as any)._id ?? (s as any).stateID
@@ -851,7 +829,6 @@ const UsersList: React.FC = () => {
                   city: e.target.value === "" ? "" : String(e.target.value),
                 })
               }
-              disabled={!filters.state}
               MenuProps={{
                 PaperProps: {
                   sx: { maxHeight: 48 * 4, overflowY: "auto" },
@@ -859,7 +836,7 @@ const UsersList: React.FC = () => {
               }}
             >
               <MenuItem value="">All Cities</MenuItem>
-              {availableCities.map((c) => (
+              {cities.map((c) => (
                 <MenuItem
                   key={String(
                     (c as any).id ?? (c as any)._id ?? (c as any).cityID

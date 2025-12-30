@@ -5,16 +5,30 @@ import TaskFiltersCard from "../../components/tasks/TaskFiltersCard";
 import TaskTable from "../../components/tasks/TaskTable";
 import TaskCard from "../../components/tasks/TaskCard";
 
-import { getTasks, deleteTask, updateTask, Task } from "../../services/taskService";
+import {
+  getTasks,
+  deleteTask,
+  updateTask,
+  Task,
+} from "../../services/taskService";
 
-import { getAllUsers, getAllUsersIncludingDeleted } from "../../services/userService";
+import {
+  getAllUsers,
+  getAllUsersIncludingDeleted,
+} from "../../services/userService";
 
 import { getCurrentUser } from "../../utils/storage"; // <-- centralized helper (tries many endpoints)
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ConfirmDeleteDialog from "../../components/common/ConfirmDeleteDialog";
 
-import { Pagination, FormControl, MenuItem, Select, Typography } from "@mui/material";
+import {
+  Pagination,
+  FormControl,
+  MenuItem,
+  Select,
+  Typography,
+} from "@mui/material";
 
 const rowsPerPageOptions = [5, 10, 20];
 
@@ -41,7 +55,6 @@ const TaskListPage: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-
   const navigate = useNavigate();
 
   /* -----------------------------------------------------
@@ -52,7 +65,9 @@ const TaskListPage: React.FC = () => {
       // 1) current user (centralized helper)
       const currentUser = await getCurrentUser();
       if (!currentUser) {
-        toast.error("Unable to determine current user (authenticate or check backend).");
+        toast.error(
+          "Unable to determine current user (authenticate or check backend)."
+        );
         setTasks([]);
         setUsers([]);
         setAllUsers([]);
@@ -60,7 +75,9 @@ const TaskListPage: React.FC = () => {
       }
 
       const currentUserId = String(currentUser.id);
-      const currentUserRole = (currentUser.role ?? "user").toString().toLowerCase();
+      const currentUserRole = (currentUser.role ?? "user")
+        .toString()
+        .toLowerCase();
 
       // 2) fetch tasks
       let allTasksRaw: any = [];
@@ -76,14 +93,18 @@ const TaskListPage: React.FC = () => {
 
       const allTasksArr: Task[] = Array.isArray(allTasksRaw)
         ? allTasksRaw
-        : (allTasksRaw && Array.isArray((allTasksRaw as any).items) ? (allTasksRaw as any).items : []);
+        : allTasksRaw && Array.isArray((allTasksRaw as any).items)
+        ? (allTasksRaw as any).items
+        : [];
 
       let visibleTasks: Task[] = [];
 
       if (currentUserRole === "admin") {
         visibleTasks = allTasksArr;
       } else {
-        visibleTasks = allTasksArr.filter((task: Task) => String(task.createdById ?? "") === currentUserId);
+        visibleTasks = allTasksArr.filter(
+          (task: Task) => String(task.createdById ?? "") === currentUserId
+        );
       }
 
       const sorted = visibleTasks.sort(
@@ -102,11 +123,17 @@ const TaskListPage: React.FC = () => {
       const tryGetUsers = async (fn: () => Promise<any[]>) => {
         try {
           const r = await fn();
-          return Array.isArray(r) ? r : (r && Array.isArray((r as any).items) ? (r as any).items : []);
+          return Array.isArray(r)
+            ? r
+            : r && Array.isArray((r as any).items)
+            ? (r as any).items
+            : [];
         } catch (err: any) {
           // If backend returns 403 Forbidden (e.g. "role not found"), treat as not admin.
           if (err?.status === 403) {
-            console.warn("User fetch forbidden (403) — treating as non-admin for frontend display");
+            console.warn(
+              "User fetch forbidden (403) — treating as non-admin for frontend display"
+            );
             return null; // signal forbidden
           }
           // other errors -> log and return empty
@@ -122,7 +149,9 @@ const TaskListPage: React.FC = () => {
       const isForbidden = activeRes === null || allRes === null;
       if (isForbidden && currentUserRole === "admin") {
         // role indicated admin on client but server forbids — warn, and fallback to current user only
-        console.warn("Server denies users list despite client saying admin. Falling back to current user only.");
+        console.warn(
+          "Server denies users list despite client saying admin. Falling back to current user only."
+        );
       }
 
       activeUsers = activeRes === null ? [] : activeRes;
@@ -133,7 +162,10 @@ const TaskListPage: React.FC = () => {
       if (currentUserRole !== "admin" || isForbidden) {
         uiUsers = uiUsers.filter((u) => {
           const rawId = u.id ?? u.userID ?? u.UserID ?? u._id ?? "";
-          return String(rawId) === currentUserId || String(u.emailID ?? u.email ?? "") === String(currentUser.email);
+          return (
+            String(rawId) === currentUserId ||
+            String(u.emailID ?? u.email ?? "") === String(currentUser.email)
+          );
         });
 
         // If nothing matched (maybe different field names), ensure we include at least current user model
@@ -141,7 +173,10 @@ const TaskListPage: React.FC = () => {
           uiUsers = [
             {
               id: currentUserId,
-              name: `${currentUser.firstName ?? ""} ${currentUser.lastName ?? ""}`.trim() || String(currentUserId),
+              name:
+                `${currentUser.firstName ?? ""} ${
+                  currentUser.lastName ?? ""
+                }`.trim() || String(currentUserId),
             },
           ];
         }
@@ -153,14 +188,26 @@ const TaskListPage: React.FC = () => {
         const parsed = Number(rawId);
         const id = Number.isFinite(parsed) ? parsed : String(rawId ?? "");
         const name =
-          (u.firstName ?? u.first ?? u.UserName ?? u.userName ?? u.name ?? u.userName ?? "")
+          (
+            u.firstName ??
+            u.first ??
+            u.UserName ??
+            u.userName ??
+            u.name ??
+            u.userName ??
+            ""
+          )
             .toString()
             .trim() || String(id);
         return { id, name, isDeleted: !!(u.isDeleted ?? u.IsDeleted) };
       };
 
       setUsers(uiUsers.map((u) => normalizeUser(u)));
-      setAllUsers((Array.isArray(allUsersFull) ? allUsersFull : []).map((u) => normalizeUser(u)));
+      setAllUsers(
+        (Array.isArray(allUsersFull) ? allUsersFull : []).map((u) =>
+          normalizeUser(u)
+        )
+      );
     } catch (err) {
       console.error("Error loading data:", err);
       toast.error("Failed to load data");
@@ -195,8 +242,12 @@ const TaskListPage: React.FC = () => {
   const filtered = tasks.filter((t) => {
     if (
       search &&
-      !String(t.name ?? "").toLowerCase().includes(search.toLowerCase()) &&
-      !String(t.descriptionPlain ?? "").toLowerCase().includes(search.toLowerCase())
+      !String(t.name ?? "")
+        .toLowerCase()
+        .includes(search.toLowerCase()) &&
+      !String(t.descriptionPlain ?? "")
+        .toLowerCase()
+        .includes(search.toLowerCase())
     )
       return false;
 
@@ -206,7 +257,9 @@ const TaskListPage: React.FC = () => {
     if (priority !== "" && Number(priority) !== t.priority) return false;
 
     if (assignedTo !== "") {
-      const assignedStrings = (t.assignedToIds || []).map((x: any) => String(x));
+      const assignedStrings = (t.assignedToIds || []).map((x: any) =>
+        String(x)
+      );
       if (!assignedStrings.includes(String(assignedTo))) return false;
     }
 
@@ -226,8 +279,8 @@ const TaskListPage: React.FC = () => {
   /* -----------------------------------------------------
        PAGINATION
   ----------------------------------------------------- */
- 
-  const pageItems = filtered
+
+  const pageItems = filtered;
 
   /* -----------------------------------------------------
        CRUD
@@ -235,7 +288,9 @@ const TaskListPage: React.FC = () => {
   ----------------------------------------------------- */
   const handleDeleteClick = (id: string | number) => {
     const idStr = String(id);
-    const found = tasks.find((t) => String((t as any).id ?? (t as any)._id ?? "") === idStr);
+    const found = tasks.find(
+      (t) => String((t as any).id ?? (t as any)._id ?? "") === idStr
+    );
     if (!found) {
       toast.error("Task not found in current list; cannot delete.");
       return;
@@ -273,7 +328,9 @@ const TaskListPage: React.FC = () => {
     const updated = { ...task, completed: !task.completed };
     try {
       await updateTask(updated);
-      toast.success(updated.completed ? "Marked complete" : "Marked incomplete");
+      toast.success(
+        updated.completed ? "Marked complete" : "Marked incomplete"
+      );
       await load();
     } catch (err) {
       console.error("Toggle complete failed:", err);
@@ -318,7 +375,9 @@ const TaskListPage: React.FC = () => {
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-3xl font-semibold">Tasks</h2>
-          <p className="text-md text-gray-500">Manage and track your tasks efficiently</p>
+          <p className="text-md text-gray-500">
+            Manage and track your tasks efficiently
+          </p>
         </div>
       </div>
 
@@ -336,9 +395,17 @@ const TaskListPage: React.FC = () => {
               if (v === "") return setAssignedTo("");
               if (typeof v === "number") return setAssignedTo(v);
               const n = Number(v);
-              return Number.isFinite(n) ? setAssignedTo(n) : setAssignedTo(String(v));
+              return Number.isFinite(n)
+                ? setAssignedTo(n)
+                : setAssignedTo(String(v));
             }}
-            users={allUsers.filter((u) => typeof u.id === "number") as Array<{ id: number; name: string; isDeleted?: boolean }>}
+            users={
+              allUsers.filter((u) => typeof u.id === "number") as Array<{
+                id: number;
+                name: string;
+                isDeleted?: boolean;
+              }>
+            }
             onAdd={() => navigate("/tasks/create")}
             onExport={handleExport}
             onRefresh={handleRefresh}
@@ -359,9 +426,17 @@ const TaskListPage: React.FC = () => {
               if (v === "") return setAssignedTo("");
               if (typeof v === "number") return setAssignedTo(v);
               const n = Number(v);
-              return Number.isFinite(n) ? setAssignedTo(n) : setAssignedTo(String(v));
+              return Number.isFinite(n)
+                ? setAssignedTo(n)
+                : setAssignedTo(String(v));
             }}
-            users={allUsers.filter((u) => typeof u.id === "number") as Array<{ id: number; name: string; isDeleted?: boolean }>}
+            users={
+              allUsers.filter((u) => typeof u.id === "number") as Array<{
+                id: number;
+                name: string;
+                isDeleted?: boolean;
+              }>
+            }
             fromDate={fromDate}
             toDate={toDate}
             setFromDate={setFromDate}
@@ -376,7 +451,12 @@ const TaskListPage: React.FC = () => {
       </div>
 
       <div className="mt-4 bg-white rounded-lg shadow overflow-hidden">
-        {viewMode === "list" ? (
+        {pageItems.length === 0 ? (
+          /* 🔹 EMPTY STATE */
+          <div className="flex items-center justify-center py-16 text-gray-500 text-md font-semibold">
+            No task found
+          </div>
+        ) : viewMode === "list" ? (
           <TaskTable
             tasks={pageItems}
             usersMap={usersMap}
@@ -399,6 +479,7 @@ const TaskListPage: React.FC = () => {
           </div>
         )}
       </div>
+
       <ConfirmDeleteDialog
         open={confirmOpen}
         onCancel={() => setConfirmOpen(false)}

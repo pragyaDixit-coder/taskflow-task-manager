@@ -56,6 +56,7 @@ const TaskCard: React.FC<Props> = ({
   const OVERLAP = 12; // px overlap amount
   const VISIBLE_COUNT = 3;
 
+
   return (
     <div
       className={`rounded p-4 shadow-sm border border-gray-200 flex justify-between items-start gap-4 px-4 py-5 transition-all duration-200 ${completedClass}`}

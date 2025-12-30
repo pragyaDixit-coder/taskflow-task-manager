@@ -104,7 +104,9 @@ const UserForm: React.FC<Props> = ({
   const [email, setEmail] = useState(initial.email ?? "");
   const [address, setAddress] = useState(initial.address ?? "");
   const [zip, setZip] = useState(initial.zip ?? "");
-  const [avatar, setAvatar] = useState<string | null>(initial.avatarUrl ?? null);
+  const [avatar, setAvatar] = useState<string | null>(
+    initial.avatarUrl ?? null
+  );
   const [changePassword, setChangePassword] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -126,9 +128,15 @@ const UserForm: React.FC<Props> = ({
   /* -------------------------
      Selected IDs (strings)
   ------------------------- */
-  const [countryId, setCountryId] = useState<string | "">(toStr(initial.countryId ?? ""));
-  const [stateId, setStateId] = useState<string | "">(toStr(initial.stateId ?? ""));
-  const [cityId, setCityId] = useState<string | "">(toStr(initial.cityId ?? ""));
+  const [countryId, setCountryId] = useState<string | "">(
+    toStr(initial.countryId ?? "")
+  );
+  const [stateId, setStateId] = useState<string | "">(
+    toStr(initial.stateId ?? "")
+  );
+  const [cityId, setCityId] = useState<string | "">(
+    toStr(initial.cityId ?? "")
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,8 +187,12 @@ const UserForm: React.FC<Props> = ({
 
         // STATES (all)
         let allS: Raw[] = [];
-        if (typeof (stateService as any).getAllStatesIncludingDeleted === "function") {
-          allS = (await (stateService as any).getAllStatesIncludingDeleted()) || [];
+        if (
+          typeof (stateService as any).getAllStatesIncludingDeleted ===
+          "function"
+        ) {
+          allS =
+            (await (stateService as any).getAllStatesIncludingDeleted()) || [];
         } else if (typeof (stateService as any).getStates === "function") {
           allS = (await (stateService as any).getStates()) || [];
         }
@@ -233,12 +245,14 @@ const UserForm: React.FC<Props> = ({
         if (typeof (stateService as any).getStates === "function") {
           statesData = (await (stateService as any).getStates()) || [];
         }
-        const normStatesAll: StateItemType[] = (statesData || []).map((s: Raw) => ({
-          id: toStr(s.id ?? s._id ?? s.stateID ?? ""),
-          name: s.name ?? s.stateName ?? "",
-          countryId: toStr(s.countryId ?? s.countryID ?? s.country ?? ""),
-          isDeleted: !!s.isDeleted,
-        }));
+        const normStatesAll: StateItemType[] = (statesData || []).map(
+          (s: Raw) => ({
+            id: toStr(s.id ?? s._id ?? s.stateID ?? ""),
+            name: s.name ?? s.stateName ?? "",
+            countryId: toStr(s.countryId ?? s.countryID ?? s.country ?? ""),
+            isDeleted: !!s.isDeleted,
+          })
+        );
         if (!mounted) return;
         const statesForCountry: StateItemType[] = countryId
           ? normStatesAll.filter((s) => s.countryId === countryId)
@@ -248,13 +262,16 @@ const UserForm: React.FC<Props> = ({
 
         // CITIES: active for selected state
         if (stateId) {
-          const citiesData: Raw[] = (await getCitiesByState(String(stateId))) || [];
-          const normCities: CityItemType[] = (citiesData || []).map((c: Raw) => ({
-            id: toStr(c.id ?? c._id ?? c.cityID ?? ""),
-            name: c.name ?? c.cityName ?? "",
-            stateId: toStr(c.stateId ?? c.stateID ?? c.state ?? ""),
-            isDeleted: !!c.isDeleted,
-          }));
+          const citiesData: Raw[] =
+            (await getCitiesByState(String(stateId))) || [];
+          const normCities: CityItemType[] = (citiesData || []).map(
+            (c: Raw) => ({
+              id: toStr(c.id ?? c._id ?? c.cityID ?? ""),
+              name: c.name ?? c.cityName ?? "",
+              stateId: toStr(c.stateId ?? c.stateID ?? c.state ?? ""),
+              isDeleted: !!c.isDeleted,
+            })
+          );
           if (!mounted) return;
           setCities(normCities);
         } else {
@@ -367,14 +384,24 @@ const UserForm: React.FC<Props> = ({
       const initialEmail = (initial.email ?? "").trim();
       const currentEmail = email.trim();
 
-      if (!(isEdit && mongoId && initialEmail.toLowerCase() === currentEmail.toLowerCase())) {
+      if (
+        !(
+          isEdit &&
+          mongoId &&
+          initialEmail.toLowerCase() === currentEmail.toLowerCase()
+        )
+      ) {
         try {
-          await checkDuplicateEmailForUserApi(currentEmail, isEdit && mongoId ? mongoId : undefined);
+          await checkDuplicateEmailForUserApi(
+            currentEmail,
+            isEdit && mongoId ? mongoId : undefined
+          );
         } catch (dupErr: any) {
           const message =
             dupErr?.response?.data?.message ??
             dupErr?.message ??
-            (dupErr?.body?.message ?? "Email is already registered");
+            dupErr?.body?.message ??
+            "Email is already registered";
           toast.error(String(message));
           setSaving(false);
           return;
@@ -405,19 +432,30 @@ const UserForm: React.FC<Props> = ({
             insErr?.message ??
             "Failed to add user";
 
-          if (status === 413 || String(serverMsg).toLowerCase().includes("request entity too large")) {
+          if (
+            status === 413 ||
+            String(serverMsg).toLowerCase().includes("request entity too large")
+          ) {
             toast.error(
               `Image is too large. Maximum allowed: ${MAX_AVATAR_SIZE_MB} MB (${formatBytes(
                 MAX_AVATAR_BYTES
               )}).`
             );
-          } else if (String(serverMsg).toLowerCase().includes("location upsert failed")) {
+          } else if (
+            String(serverMsg).toLowerCase().includes("location upsert failed")
+          ) {
             toast.error(
               "Failed to create location (country/state/city) on server. Please check the location values or try again."
             );
+          } else if (String(serverMsg).toLowerCase().includes("password")) {
+            setErrors((prev) => ({
+              ...prev,
+              password: serverMsg,
+            }));
           } else {
-            toast.error(String(serverMsg));
+            toast.error(serverMsg);
           }
+
           console.error("Insert user error:", insErr);
           setSaving(false);
           return;
@@ -457,14 +495,21 @@ const UserForm: React.FC<Props> = ({
             updErr?.message ??
             "Failed to update user";
 
-          if (status === 413 || String(serverMsg).toLowerCase().includes("request entity too large") ||
-              String(serverMsg).toLowerCase().includes("request entity too large")) {
+          if (
+            status === 413 ||
+            String(serverMsg)
+              .toLowerCase()
+              .includes("request entity too large") ||
+            String(serverMsg).toLowerCase().includes("request entity too large")
+          ) {
             toast.error(
               `Image is too large. Maximum allowed: ${MAX_AVATAR_SIZE_MB} MB (${formatBytes(
                 MAX_AVATAR_BYTES
               )}).`
             );
-          } else if (String(serverMsg).toLowerCase().includes("location upsert failed")) {
+          } else if (
+            String(serverMsg).toLowerCase().includes("location upsert failed")
+          ) {
             toast.error(
               "Failed to update location (country/state/city) on server. Please check the location values or try again."
             );
@@ -478,7 +523,7 @@ const UserForm: React.FC<Props> = ({
       }
 
       // Parent callback
-      await onSave(user, (!isEdit || changePassword) ? password : undefined);
+      await onSave(user, !isEdit || changePassword ? password : undefined);
       onCancel();
     } catch (err: any) {
       console.error("Unexpected save error:", err);
@@ -571,7 +616,8 @@ const UserForm: React.FC<Props> = ({
                 size="small"
                 fullWidth
                 onChange={(e) => {
-                  const val = e.target.value === "" ? "" : String(e.target.value);
+                  const val =
+                    e.target.value === "" ? "" : String(e.target.value);
                   setCountryId(val);
                   setStateId("");
                   setCityId("");
@@ -616,7 +662,8 @@ const UserForm: React.FC<Props> = ({
                 fullWidth
                 disabled={!countryId}
                 onChange={(e) => {
-                  const val = e.target.value === "" ? "" : String(e.target.value);
+                  const val =
+                    e.target.value === "" ? "" : String(e.target.value);
                   setStateId(val);
                   setCityId("");
                 }}
@@ -654,7 +701,9 @@ const UserForm: React.FC<Props> = ({
                 size="small"
                 fullWidth
                 disabled={!stateId}
-                onChange={(e) => setCityId(e.target.value === "" ? "" : String(e.target.value))}
+                onChange={(e) =>
+                  setCityId(e.target.value === "" ? "" : String(e.target.value))
+                }
                 SelectProps={{
                   MenuProps: {
                     PaperProps: {
@@ -697,11 +746,20 @@ const UserForm: React.FC<Props> = ({
         </Grid>
 
         {/* RIGHT SIDE — AVATAR */}
-        <Grid item xs={12} md={4} className="flex flex-col items-center justify-center">
+        <Grid
+          item
+          xs={12}
+          md={4}
+          className="flex flex-col items-center justify-center"
+        >
           {/* container relative so delete & camera icons can overlap */}
           <Box sx={{ position: "relative", display: "inline-block" }}>
             {/* Avatar is clickable: clicking triggers file input */}
-            <Tooltip title={avatar ? "Click to change picture" : "Click to upload picture"}>
+            <Tooltip
+              title={
+                avatar ? "Click to change picture" : "Click to upload picture"
+              }
+            >
               <Avatar
                 src={avatar || undefined}
                 sx={{
@@ -724,10 +782,10 @@ const UserForm: React.FC<Props> = ({
                 onClick={handleRemoveAvatar}
                 sx={{
                   position: "absolute",
-                  right: -1,
-                  top: -1,
+                  right: 1,
+                  top: 1,
                   color: "error.main",
-                  zIndex: 0, // under avatar
+                  zIndex: 2, // above avatar
                 }}
               >
                 <DeleteIcon fontSize="small" />
@@ -785,7 +843,7 @@ const UserForm: React.FC<Props> = ({
           - For Add (isEdit === false): ALWAYS show
           - For Edit (isEdit === true): show only when changePassword === true
       */}
-      {( !isEdit || (isEdit && changePassword) ) && (
+      {(!isEdit || (isEdit && changePassword)) && (
         <Grid container spacing={2} mt={1}>
           <Grid item xs={6}>
             <TextField

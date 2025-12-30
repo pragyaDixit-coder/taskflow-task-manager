@@ -163,6 +163,7 @@ const AddEditCountryModal: React.FC<Props> = ({
   return (
     <Dialog open={open} onClose={handleDialogClose} maxWidth="sm" fullWidth>
       <DialogTitle
+         component="div"
         sx={{
           display: "flex",
           alignItems: "center",
@@ -172,6 +173,7 @@ const AddEditCountryModal: React.FC<Props> = ({
       >
       <Typography
                 variant="h6"
+                component="div"
                 sx={{
                   fontWeight: 700,
                   fontSize: "1.6rem",

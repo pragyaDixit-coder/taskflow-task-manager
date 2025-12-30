@@ -222,9 +222,6 @@ const TaskTable: React.FC<Props> = ({
             fontWeight: 600,
           },
         }}
-        localeText={{
-          noRowsLabel: "No tasks found",
-        }}
       />
     </Box>
   );

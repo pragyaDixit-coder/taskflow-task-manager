@@ -90,8 +90,8 @@ const ForgotPassword: React.FC = () => {
         </div>
 
         {/* Title & Subtitle */}
-        <Typography variant="h6" className="font-semibold text-gray-800 pb-5">
-          Task Manager
+        <Typography variant="h5" className="font-semibold text-gray-800 pb-5">
+          TaskFlow
         </Typography>
         <Typography variant="h5" className="font-bold text-gray-800 mt-2 pb-2">
           Forgot your password?

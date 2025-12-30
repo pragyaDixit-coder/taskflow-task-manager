@@ -2,7 +2,9 @@
 import apiClient from "../api/apiClient"; // apiClient should use src/utils/http.ts
 
 export type AppUser = {
-  id: number | string;
+  _id?: string;                // 👈 ADD THIS (MongoDB primary id)
+
+  id?: number | string;  
   firstName: string;
   lastName: string;
   email: string;
