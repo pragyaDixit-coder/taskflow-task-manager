@@ -156,17 +156,26 @@ async function tryFindCity(stateId, name) {
   if (doc && String(doc.stateID) === String(stateId)) return doc;
   return null;
 }
-async function createOrGetCity(stateId, name) {
+async function createOrGetCity(stateId, name, zipCode) {
   const display = displayNameNormalized(name);
   const nl = canonicalName(name);
 
   let existing = await tryFindCity(stateId, name);
-  if (existing) return existing;
+  if (existing){
+    // 🔥 zipCodes update if provided
+    if (zipCode) {
+      await City.updateOne(
+        { _id: existing._id },
+        { $addToSet: { zipCodes: zipCode } }
+      );
+    }
+    return existing;
+  } 
 
   try {
     const doc = await City.findOneAndUpdate(
       { stateID: stateId, nameLower: nl, isDeleted: { $ne: true } },
-      { $setOnInsert: { name: display, nameLower: nl, stateID: stateId } },
+      { $setOnInsert: { name: display, nameLower: nl, stateID: stateId,zipCodes: zipCode ? [zipCode] : [], } },
       { upsert: true, new: true, setDefaultsOnInsert: true, collation: DEFAULT_COLLATION }
     ).exec();
     if (doc) return doc;
@@ -212,6 +221,8 @@ function parseDuplicateKeyError(err) {
 /* -------- Main registration service -------- */
 
 export const registerUserService = async (payload) => {
+  console.error("🔥🔥 registerUserService ACTUALLY CALLED 🔥🔥");
+
   console.debug("[register] payload keys:", Object.keys(payload || {}));
   let {
     FirstName,
@@ -223,7 +234,7 @@ export const registerUserService = async (payload) => {
     CountryName,
     StateName,
     CityName,
-    Zip,
+    ZipCode,
   } = payload || {};
 
   FirstName = (FirstName || "").trim();
@@ -235,7 +246,7 @@ export const registerUserService = async (payload) => {
   CountryName = (CountryName || "").trim();
   StateName = (StateName || "").trim();
   CityName = (CityName || "").trim();
-  Zip = (Zip || "").trim();
+  ZipCode = (ZipCode || "").trim();
 
   // basic validation
   if (!FirstName) { const e = new Error("First Name is required."); e.statusCode = 400; throw e; }
@@ -256,7 +267,8 @@ export const registerUserService = async (payload) => {
   ensureMaxLength("Country Name", CountryName, 50);
   ensureMaxLength("State Name", StateName, 50);
   ensureMaxLength("City Name", CityName, 50);
-  ensureMaxLength("Zip", Zip, 6);
+  ensureMaxLength("Zip", ZipCode, 6);
+
 
   if (!emailRegex.test(EmailID)) { const e = new Error("Please enter a valid email address."); e.statusCode = 400; throw e; }
   if (!passwordPolicyRegex.test(Password)) {
@@ -269,34 +281,51 @@ export const registerUserService = async (payload) => {
   const emailRegexSearch = new RegExp(`^${escapeRegex(EmailID)}$`, "i");
   const existingUser = await User.findOne({ emailID: emailRegexSearch }).lean().exec();
   if (existingUser) { const e = new Error("Email is already registered."); e.statusCode = 409; e.field = "email"; throw e; }
-
+  
+  let countryID = null;
+  let stateID = null;
   let cityID = null;
 
   try {
     if (Address && CountryName && StateName && CityName) {
       console.debug("[register] resolving location for:", CountryName, StateName, CityName);
       const countryDoc = await createOrGetCountry(CountryName);
-      const stateDoc = await createOrGetState(countryDoc._id, StateName);
-      const cityDoc = await createOrGetCity(stateDoc._id, CityName);
+      countryID = countryDoc._id;
+      const stateDoc = await createOrGetState(countryID, StateName);
+      stateID = stateDoc._id;
+      const cityDoc = await createOrGetCity(stateID, CityName, ZipCode);
       cityID = cityDoc._id;
-      console.debug("[register] resolved location ids:", { countryId: countryDoc._id, stateId: stateDoc._id, cityId: cityDoc._id });
+      console.debug("[register] resolved location ids:", { countryID: countryDoc._id, stateID: stateDoc._id, cityID: cityDoc._id });
     }
 
     // create user
     const hashedPassword = await hashPassword(Password);
     const createObj = {
-      firstName: FirstName,
-      lastName: LastName,
-      emailID: EmailID,
-      password: hashedPassword,
-      address: Address || null,
-      cityID: cityID || null,
-      zipCode: Zip || null,
-      createdBy: null,
-      updatedBy: null,
-    };
+  // basic info
+  firstName: FirstName,
+  lastName: LastName,
+  emailID: EmailID,
+  password: hashedPassword,
+  address: Address || null,
 
-    console.debug("[register] creating user:", { email: EmailID, cityID });
+  // location names
+  countryName: CountryName || null,
+  stateName: StateName || null,
+  cityName: CityName || null,
+
+  // location IDs (🔥 FIXED)
+  countryID: countryID || null,
+  stateID: stateID || null,
+  cityID: cityID || null,
+
+  // zip
+  zipCode: ZipCode || null,
+
+ createdBy: null,
+ updatedBy: null,
+};
+
+    console.debug("[register] creating user:", createObj);
     const user = await User.create(createObj);
     console.debug("[register] user created id:", user._id);
 

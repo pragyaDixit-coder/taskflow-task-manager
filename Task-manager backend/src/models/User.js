@@ -45,6 +45,19 @@ const userSchema = new Schema(
       trim: true,
     },
 
+     countryID: {
+      type: Schema.Types.ObjectId,
+      ref: "Country",
+      default: null,
+    },
+
+     // optional state/country refs (helpful for signup)
+    stateID: {
+      type: Schema.Types.ObjectId,
+      ref: "State",
+      default: null,
+    },
+
     // reference to City
     cityID: {
       type: Schema.Types.ObjectId,
@@ -64,19 +77,6 @@ const userSchema = new Schema(
     zipCodes: {
       type: [String],
       default: [],
-    },
-
-    // optional state/country refs (helpful for signup)
-    stateID: {
-      type: Schema.Types.ObjectId,
-      ref: "State",
-      default: null,
-    },
-
-    countryID: {
-      type: Schema.Types.ObjectId,
-      ref: "Country",
-      default: null,
     },
 
     avatarUrl: {

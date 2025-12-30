@@ -86,27 +86,45 @@ export const signupService = async (payload = {}) => {
   const hashed = await hashPassword(password, DEFAULT_SALT_ROUNDS);
 
   // normalize zipCodes
-  const zipCodes = normalizeZipCodes(payload.zipCodes ?? payload.zipCode ?? payload.zip ?? "");
+  const zipCodes = normalizeZipCodes(
+    payload.zipCodes ?? payload.zipCode ?? payload.zip ?? ""
+  );
 
   const userDoc = {
-    firstName: payload.firstName ? String(payload.firstName).trim() : "",
-    lastName: payload.lastName ? String(payload.lastName).trim() : "",
+    // 🔹 BASIC INFO
+    firstName: payload.firstName || payload.FirstName || "",
+    lastName: payload.lastName || payload.LastName || "",
     email: email,
     emailID: email,
     password: hashed,
     role: payload.role ? String(payload.role) : "user",
+
+    // 🔹 OPTIONAL INFO
     phone: payload.phone ? String(payload.phone).trim() : "",
     avatarUrl: payload.avatarUrl ? String(payload.avatarUrl).trim() : "",
-    cityId: payload.cityId || payload.cityID || null,
-    stateId: payload.stateId || payload.stateID || null,
-    countryId: payload.countryId || payload.countryID || null,
-    zipCodes,
+    address: payload.Address || payload.address || "",
+
+    // 🔹 LOCATION IDS
+    countryId: payload.countryId || payload.CountryID || null,
+    stateId: payload.stateId || payload.StateID || null,
+    cityId: payload.cityId || payload.CityID || null,
+
+    // 🔹 LOCATION NAMES (🔥 THIS WAS MISSING)
+    countryName: payload.CountryName || null,
+    stateName: payload.StateName || null,
+    cityName: payload.CityName || null,
+
+    // 🔹 ZIP
+    zipCode: payload.ZipCode || null,
+    zipCodes, // optional array support
+
     isDeleted: false,
     isActive: true,
     createdOn: new Date(),
     updatedOn: new Date(),
     createdBy: payload.createdBy || null,
   };
+  console.log("SIGNUP SERVICE - FINAL userDoc 👉", userDoc);
 
   // create user
   const created = await User.create(userDoc);
@@ -131,7 +149,11 @@ export const loginService = async (emailID, password) => {
 
   // Validate password (supports bcrypt hash or legacy plaintext)
   let isValid = false;
-  if (user.password && typeof user.password === "string" && user.password.startsWith("$2")) {
+  if (
+    user.password &&
+    typeof user.password === "string" &&
+    user.password.startsWith("$2")
+  ) {
     isValid = await verifyPassword(password, user.password);
   } else {
     isValid = password === user.password;
@@ -158,7 +180,10 @@ export const loginService = async (emailID, password) => {
 /* -------------------------
    SEND RESET PASSWORD CODE
 ------------------------- */
-export const sendResetPasswordCodeService = async (emailID, resetPageBaseUrl) => {
+export const sendResetPasswordCodeService = async (
+  emailID,
+  resetPageBaseUrl
+) => {
   const user = await User.findOne({ emailID });
   if (!user) {
     return { success: false };
@@ -190,7 +215,10 @@ export const validateResetPasswordCodeService = async (code) => {
   const user = await User.findOne({ resetPasswordCode: code });
   if (!user) return { status: "invalid", message: "Invalid Code." };
 
-  if (!user.resetPasswordCodeValidUpto || user.resetPasswordCodeValidUpto < new Date()) {
+  if (
+    !user.resetPasswordCodeValidUpto ||
+    user.resetPasswordCodeValidUpto < new Date()
+  ) {
     return { status: "expired", message: "Code is expired." };
   }
 
@@ -206,7 +234,10 @@ export const resetPasswordService = async (code, newPassword) => {
   const user = await User.findOne({ resetPasswordCode: code });
   if (!user) return { status: "invalid", message: "Invalid Code." };
 
-  if (!user.resetPasswordCodeValidUpto || user.resetPasswordCodeValidUpto < new Date()) {
+  if (
+    !user.resetPasswordCodeValidUpto ||
+    user.resetPasswordCodeValidUpto < new Date()
+  ) {
     return { status: "expired", message: "Code is expired." };
   }
 
@@ -223,7 +254,10 @@ export const resetPasswordService = async (code, newPassword) => {
    - Accepts token (from cookie, Authorization header, query or direct param)
    - Verifies JWT via verifyAuthToken and returns normalized user object or null
 ------------------------- */
-export const getCurrentUserService = async (token /* string */, req /* optional */) => {
+export const getCurrentUserService = async (
+  token /* string */,
+  req /* optional */
+) => {
   try {
     // Resolve token from multiple sources (priority: explicit param -> Authorization header -> cookie -> query)
     let tk = token || null;
@@ -237,7 +271,12 @@ export const getCurrentUserService = async (token /* string */, req /* optional 
       }
     }
 
-    if (!tk && req && req.cookies && (req.cookies.session || req.cookies.token)) {
+    if (
+      !tk &&
+      req &&
+      req.cookies &&
+      (req.cookies.session || req.cookies.token)
+    ) {
       tk = req.cookies.session || req.cookies.token;
     }
 
@@ -252,7 +291,10 @@ export const getCurrentUserService = async (token /* string */, req /* optional 
     try {
       payload = verifyAuthToken(tk);
     } catch (e) {
-      console.warn("getCurrentUserService: token verification failed:", e?.message ?? e);
+      console.warn(
+        "getCurrentUserService: token verification failed:",
+        e?.message ?? e
+      );
       return null;
     }
 

@@ -39,7 +39,7 @@ function signToken(payload, expiresIn = "1d") {
 function setAuthCookie(res, token, remember = false) {
   const opts = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
   };
@@ -105,6 +105,8 @@ export const signup = async (req, res, next) => {
   try {
     const body = req.body || {};
 
+    console.log("SIGNUP BODY FROM FRONTEND 👉", body);
+
     // accept either email or EmailID from various frontends
     const emailRaw = body.email ?? body.EmailID ?? "";
     const password = body.password ?? body.Password ?? "";
@@ -161,24 +163,37 @@ export const signup = async (req, res, next) => {
     const zipCodes = normalizeZipCodes(zipField);
 
     const userDoc = {
-      firstName: body.firstName ? String(body.firstName).trim() : "",
-      lastName: body.lastName ? String(body.lastName).trim() : "",
-      email,
-      emailID: email,
-      password: hashed,
-      role: body.role ? String(body.role) : "User",
-      phone: body.phone ? String(body.phone).trim() : "",
-      avatarUrl: body.avatarUrl ? String(body.avatarUrl).trim() : "",
-      cityId: body.cityId || body.cityID || body.city || null,
-      stateId: body.stateId || body.stateID || null,
-      countryId: body.countryId || body.countryID || null,
-      zipCodes,
-      isDeleted: false,
-      isActive: true,
-      createdOn: new Date(),
-      updatedOn: new Date(),
-      createdBy: body.createdBy || null,
-    };
+  firstName: body.FirstName || body.firstName || "",
+  lastName: body.LastName || body.lastName || "",
+  email,
+  emailID: email,
+  password: hashed,
+
+  role: body.role ? String(body.role) : "User",
+  phone: body.phone ? String(body.phone).trim() : "",
+  avatarUrl: body.avatarUrl ? String(body.avatarUrl).trim() : "",
+
+  // 🔥 LOCATION IDS
+  countryId: body.countryId || body.CountryID || null,
+  stateId: body.stateId || body.StateID || null,
+  cityId: body.cityId || body.CityID || null,
+
+  // 🔥 LOCATION NAMES (THIS WAS MISSING)
+  countryName: body.CountryName || null,
+  stateName: body.StateName || null,
+  cityName: body.CityName || null,
+
+  // 🔥 ZIP
+  zipCode: body.ZipCode || null,
+  zipCodes, // (agar tum future me multiple zip use karo)
+
+  isDeleted: false,
+  isActive: true,
+  createdOn: new Date(),
+  updatedOn: new Date(),
+};
+
+    console.log("USER DOC BEFORE SAVE 👉", userDoc);
 
     const created = await User.create(userDoc);
 

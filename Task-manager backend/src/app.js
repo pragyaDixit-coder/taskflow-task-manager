@@ -107,6 +107,7 @@ app.get("/", (_req, res) => {
   });
 });
 
+
 /* ---------------- Mount routers ---------------- */
 
 // Public auth routes

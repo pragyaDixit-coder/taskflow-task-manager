@@ -444,15 +444,19 @@ export const getUserListService = async (optionalId, currentUser = null) => {
   const filter = { isDeleted: { $ne: true } };
 
   if (optionalId) filter._id = optionalId;
-
   if (!admin) {
-    const curIdStr = String(currentUser.id);
-    if (mongoose.Types.ObjectId.isValid(curIdStr)) {
-      filter.createdBy = new mongoose.Types.ObjectId(curIdStr);
-    } else {
-      filter.createdBy = curIdStr;
-    }
+    const curIdStr = String(currentUser._id || currentUser.id);
+    const idValue = mongoose.Types.ObjectId.isValid(curIdStr)
+      ? new mongoose.Types.ObjectId(curIdStr)
+      : curIdStr;
+
+    // 🔥 FIX: self + created users
+    filter.$or = [
+      { _id: idValue },        // 👈 login user khud
+      { createdBy: idValue }, // 👈 uske banaye hue users
+    ];
   }
+  
 
   const users = await User.find(filter)
     .populate("createdBy", "firstName lastName")
@@ -574,7 +578,7 @@ export const getUserLookupListService = async (currentUser = null) => {
   const filter = { isDeleted: { $ne: true } };
 
   if (!admin && currentUser) {
-    const curIdStr = String(currentUser.id);
+    const curIdStr = String(currentUser._id || currentUser.id);
     const idValue = mongoose.Types.ObjectId.isValid(curIdStr)
       ? new mongoose.Types.ObjectId(curIdStr)
       : curIdStr;
@@ -599,6 +603,7 @@ export const getUserLookupListService = async (currentUser = null) => {
  *    - createdBy = currentUserId
  *    - role field DB default se "User" ban jayega (User model me default set hai)
  */
+
 export const insertUserService = async (payload, currentUserId) => {
   let {
     FirstName,
@@ -690,7 +695,7 @@ export const insertUserService = async (payload, currentUserId) => {
 
   if (!passwordPolicyRegex.test(Password)) {
     const err = new Error(
-      "Password must be at least 8 characters, including one uppercase letter, one number, and one special character."
+      "Password must be 8-18 chars, include 1 uppercase, 1 number and 1 special char."
     );
     err.statusCode = 400;
     throw err;
@@ -710,6 +715,20 @@ export const insertUserService = async (payload, currentUserId) => {
   const cityID = Address
     ? await upsertLocation(currentUserId, CountryName, StateName, CityName, zipArray)
     : null;
+  let countryID = null;
+let stateID = null;
+
+if (cityID) {
+  const cityDoc = await City.findById(cityID).lean();
+  if (cityDoc?.stateID) {
+    stateID = cityDoc.stateID;
+
+    const stateDoc = await State.findById(stateID).lean();
+    if (stateDoc?.countryID) {
+      countryID = stateDoc.countryID;
+    }
+  }
+}
 
   const hashed = await hashPassword(Password);
 
@@ -719,6 +738,9 @@ export const insertUserService = async (payload, currentUserId) => {
     emailID: EmailID,
     password: hashed,
     address: Address || null,
+    // 🔥 LOCATION IDS (FIX)
+    countryID: countryID,
+    stateID: stateID,
     cityID: cityID || null,
     zipCode: Zip || null,
     zipCodes: Array.isArray(zipArray) && zipArray.length > 0 ? zipArray : [],
@@ -729,6 +751,7 @@ export const insertUserService = async (payload, currentUserId) => {
     // role: not set here → User model default ("User") apply hoga
   });
 
+ 
   return { userID: newUser._id };
 };
 
@@ -869,10 +892,29 @@ export const updateUserService = async (payload, currentUserId) => {
     ? await upsertLocation(currentUserId, CountryName, StateName, CityName, zipArray)
     : null;
 
+    let countryID = null;
+let stateID = null;
+
+if (cityID) {
+  const cityDoc = await City.findById(cityID).lean();
+  if (cityDoc?.stateID) {
+    stateID = cityDoc.stateID;
+
+    const stateDoc = await State.findById(stateID).lean();
+    if (stateDoc?.countryID) {
+      countryID = stateDoc.countryID;
+    }
+  }
+}
+
+
   user.firstName = FirstName;
   user.lastName = LastName;
   user.emailID = EmailID;
   user.address = Address || null;
+    // 🔥 LOCATION IDS (FIX)
+  user.countryID = countryID || null;
+  user.stateID = stateID || null;
   user.cityID = cityID || null;
   user.zipCode = Zip || null;
   // Set user's zipCodes array too (keeps user document in sync)

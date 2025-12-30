@@ -69,6 +69,10 @@ export async function createTask(payload, userOrUserId) {
 
     const doc = new Task({
       ...payload,
+      // ✅ defaults on create
+      completed: false,
+      completedByUserId: null,
+      completedOn: null,
       createdBy: userId ?? null,
       updatedBy: userId ?? null,
     });
@@ -102,6 +106,19 @@ export async function updateTask(id, payload, userOrUserId) {
       ...payload,
       updatedBy: userId ?? existing.updatedBy ?? null,
     };
+
+    // 🔥 COMPLETION LOGIC (THIS WAS MISSING)
+    if (typeof payload.completed !== "undefined") {
+      if (payload.completed === true) {
+        update.completed = true;
+        update.completedByUserId = userId ?? null;
+        update.completedOn = new Date();
+      } else {
+        update.completed = false;
+        update.completedByUserId = null;
+        update.completedOn = null;
+      }
+    }
 
     const updated = await Task.findByIdAndUpdate(id, update, {
       new: true,
